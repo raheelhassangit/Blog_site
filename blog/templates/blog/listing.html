@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="mx-auto max-w-6xl px-5 pb-10 pt-10 md:px-8 md:pt-16">
+  <p class="text-sm font-semibold uppercase tracking-[.2em] text-accent">{% block kicker %}{% endblock %}</p>
+  <h1 class="mt-3 font-display text-5xl font-semibold tracking-tight md:text-7xl">{% block heading %}{% endblock %}</h1>
+  <div class="mt-5 max-w-2xl text-lg text-muted">{% block intro %}{% endblock %}</div>
+  {% block extra %}{% endblock %}
+</header>
+<section class="mx-auto max-w-6xl px-5 md:px-8">
+  <div class="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+    {% for post in posts %}{% include "partials/post_card.html" %}
+    {% empty %}<p class="col-span-full py-16 text-center text-lg text-muted">{% block empty %}Nothing here yet. New stories are on the way.{% endblock %}</p>
+    {% endfor %}
+  </div>
+  {% if is_paginated %}
+    <nav class="mt-12 flex justify-between text-sm font-semibold" aria-label="Pagination">
+      {% if page_obj.has_previous %}<a class="text-accent underline underline-offset-4" href="?{% if query %}q={{ query|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">← Newer</a>{% else %}<span></span>{% endif %}
+      {% if page_obj.has_next %}<a class="text-accent underline underline-offset-4" href="?{% if query %}q={{ query|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">Older →</a>{% endif %}
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}
