@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="progress" aria-hidden="true"></div>
+
+{% if is_preview %}
+  <div class="bg-clay px-5 py-2 text-center text-sm font-semibold text-ink">Preview only: this post is "{{ post.get_status_display }}" and isn't visible to the public yet.</div>
+{% endif %}
+
+<article>
+  <header class="mx-auto max-w-3xl px-5 pt-8 md:px-8 md:pt-14">
+    <nav aria-label="Breadcrumb" class="text-sm text-muted">
+      <a href="{% url 'blog:home' %}" class="hover:text-accent">Home</a> <span aria-hidden="true">›</span>
+      <a href="{{ post.category.get_absolute_url }}" class="font-medium text-accent hover:underline">{{ post.category.name }}</a>
+    </nav>
+    <h1 class="mt-5 font-display text-4xl font-semibold leading-[1.08] tracking-tight md:text-6xl">{{ post.title }}</h1>
+    <p class="mt-5 text-xl text-muted md:text-2xl">{{ post.excerpt }}</p>
+
+    <div class="mt-8 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
+      <div class="flex items-center gap-3">
+        {% if post.author.photo %}
+          <img src="{{ post.author.photo.url }}" alt="" width="44" height="44" class="h-11 w-11 rounded-full object-cover">
+        {% else %}
+          <span class="grid h-11 w-11 place-items-center rounded-full bg-forest font-display text-lg font-semibold text-cream" aria-hidden="true">{{ post.author.display_name|first }}</span>
+        {% endif %}
+        <div class="text-sm">
+          <a href="{{ post.author.get_absolute_url }}" class="font-semibold hover:text-accent">{{ post.author.display_name }}</a>
+          <p class="text-muted">
+            <time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"M j, Y" }}</time>
+            · {{ post.reading_time }} min read
+            {% if post.updated_at|date:"Ymd" != post.published_at|date:"Ymd" %}· Updated {{ post.updated_at|date:"M j, Y" }}{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-sm font-semibold">
+        {% if seo.image %}
+          <a href="https://pinterest.com/pin/create/button/?url={{ seo.canonical|urlencode:'' }}&media={{ seo.image|urlencode:'' }}&description={{ post.title|urlencode:'' }}" target="_blank" rel="noopener" class="rounded-full border border-line px-4 py-2 hover:bg-clay hover:text-ink">Pin it</a>
+        {% endif %}
+        <button id="copy-link" type="button" class="rounded-full border border-line px-4 py-2 hover:bg-forest hover:text-cream">Copy link</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mx-auto mt-10 max-w-5xl px-5 md:px-8">
+    <div class="relative aspect-[16/9] overflow-hidden rounded-3xl">
+      {% if post.cover_image %}
+        <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt }}" class="absolute inset-0 h-full w-full object-cover" fetchpriority="high" decoding="async">
+      {% else %}
+        {% include "partials/art.html" with n=post.pk %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mx-auto mt-10 max-w-3xl px-5 md:px-8">
+    <nav id="toc" hidden aria-label="In this article" class="mb-10 rounded-2xl border border-line bg-raised p-5">
+      <details open>
+        <summary class="cursor-pointer font-display text-xl font-semibold">In this article</summary>
+        <ol id="toc-list" class="mt-3 list-decimal space-y-1 pl-5 text-accent marker:font-semibold"></ol>
+      </details>
+    </nav>
+    <div id="article-body" class="prose-post">{{ post.body|safe }}</div>
+
+    {% if post.tags.all %}
+      <ul class="mt-12 flex flex-wrap gap-2" aria-label="Tags">
+        {% for t in post.tags.all %}<li><a href="{{ t.get_absolute_url }}" class="inline-block rounded-full border border-line px-4 py-1.5 text-sm font-medium hover:bg-forest hover:text-cream">#{{ t.name }}</a></li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <aside class="mt-12 flex gap-5 rounded-3xl bg-raised p-6" aria-label="About the author">
+      {% if post.author.photo %}
+        <img src="{{ post.author.photo.url }}" alt="" width="72" height="72" loading="lazy" class="h-[72px] w-[72px] shrink-0 rounded-full object-cover">
+      {% else %}
+        <span class="grid h-[72px] w-[72px] shrink-0 place-items-center rounded-full bg-forest font-display text-2xl font-semibold text-cream" aria-hidden="true">{{ post.author.display_name|first }}</span>
+      {% endif %}
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[.2em] text-accent">Written by</p>
+        <p class="font-display text-2xl font-semibold">{{ post.author.display_name }}</p>
+        {% if post.author.bio %}<p class="mt-2 text-muted">{{ post.author.bio }}</p>{% endif %}
+        <a href="{{ post.author.get_absolute_url }}" class="mt-3 inline-block text-sm font-semibold text-accent underline underline-offset-4">More from {{ post.author.display_name }} →</a>
+      </div>
+    </aside>
+  </div>
+</article>
+
+{% if related_posts %}
+<section class="mx-auto mt-24 max-w-6xl px-5 md:px-8" aria-labelledby="related">
+  <h2 id="related" class="font-display text-3xl font-semibold md:text-4xl">Keep reading</h2>
+  <div class="mt-8 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+    {% for rp in related_posts %}{% include "partials/post_card.html" with post=rp %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var bar = document.getElementById('progress'), art = document.getElementById('article-body');
+  function update() {
+    var r = art.getBoundingClientRect(), h = r.height - innerHeight * .6;
+    bar.style.transform = 'scaleX(' + Math.min(1, Math.max(0, -r.top / h)) + ')';
+  }
+  addEventListener('scroll', update, { passive: true }); update();
+
+  var hs = art.querySelectorAll('h2'), list = document.getElementById('toc-list');
+  if (hs.length >= 3) {
+    hs.forEach(function (h, i) {
+      h.id = h.id || 'section-' + (i + 1);
+      var li = document.createElement('li'), a = document.createElement('a');
+      a.href = '#' + h.id; a.textContent = h.textContent; a.className = 'hover:underline';
+      li.appendChild(a); list.appendChild(li);
+    });
+    document.getElementById('toc').hidden = false;
+  }
+
+  var btn = document.getElementById('copy-link');
+  btn.addEventListener('click', function () {
+    var label = btn.textContent, url = location.href.split('#')[0];
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { btn.textContent = 'Link copied ✓'; setTimeout(function () { btn.textContent = label; }, 1800); })
+      .catch(function () { prompt('Copy this link', url); });
+  });
+})();
+</script>
+{% endblock %}
