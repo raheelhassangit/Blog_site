@@ -1,0 +1,12 @@
+{% extends "blog/listing.html" %}
+{% block kicker %}Search{% endblock %}
+{% block heading %}{% if query %}“{{ query }}”{% else %}Find a dress story{% endif %}{% endblock %}
+{% block intro %}{% if query %}{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}.{% endif %}{% endblock %}
+{% block extra %}
+  <form action="{% url 'blog:search' %}" method="get" role="search" class="mt-8 flex max-w-xl gap-2 rounded-full border border-line bg-raised p-2 pl-6 focus-within:border-clay">
+    <label for="q" class="sr-only">Search</label>
+    <input id="q" name="q" type="search" value="{{ query }}" maxlength="100" placeholder="wedding guest, linen midi, satin…" class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" {% if not query %}autofocus{% endif %}>
+    <button class="rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream hover:bg-clay hover:text-ink">Search</button>
+  </form>
+{% endblock %}
+{% block empty %}{% if query %}No matches. Try a broader word, or browse the topics in the menu.{% else %}Type a style, fabric or occasion to begin.{% endif %}{% endblock %}

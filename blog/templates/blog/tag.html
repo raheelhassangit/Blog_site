@@ -1,0 +1,4 @@
+{% extends "blog/listing.html" %}
+{% block kicker %}Style{% endblock %}
+{% block heading %}#{{ tag.name }}{% endblock %}
+{% block intro %}{{ page_obj.paginator.count }} article{{ page_obj.paginator.count|pluralize }} tagged {{ tag.name }}.{% endblock %}
