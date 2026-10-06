@@ -79,3 +79,35 @@ body::before { /* paper grain */
 .marquee-track { display: flex; width: max-content; animation: marquee 45s linear infinite; }
 .marquee:hover .marquee-track { animation-play-state: paused; }
 .marquee-track span { padding: 0 1.25rem; white-space: nowrap; }
+
+html { scroll-padding-top: 5.5rem; }
+
+#progress { position: fixed; top: 0; left: 0; z-index: 60; height: 3px; width: 100%;
+  background: var(--clay); transform-origin: 0 50%; transform: scaleX(0); }
+
+.prose-post { font-size: 1.1875rem; line-height: 1.85; }
+.prose-post > * + * { margin-top: 1.4em; }
+.prose-post h2 { font-family: "Fraunces", Georgia, serif; font-size: 2rem; line-height: 1.2; font-weight: 600; margin-top: 2.2em; }
+.prose-post h3 { font-family: "Fraunces", Georgia, serif; font-size: 1.5rem; line-height: 1.3; font-weight: 600; margin-top: 1.8em; }
+.prose-post h4 { font-size: .95rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-top: 1.6em; }
+.prose-post a { color: var(--accent); text-decoration: underline; text-decoration-color: var(--clay); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.prose-post a:hover { background: color-mix(in srgb, var(--clay) 25%, transparent); }
+.prose-post ul, .prose-post ol { padding-left: 1.5em; }
+.prose-post ul { list-style: none; }
+.prose-post ul li { position: relative; }
+.prose-post ul li::before { content: "✦"; position: absolute; left: -1.4em; top: .5em; font-size: .7em; color: var(--clay); }
+.prose-post ol { list-style: decimal; }
+.prose-post ol li::marker { color: var(--accent); font-weight: 600; }
+.prose-post li + li { margin-top: .5em; }
+.prose-post blockquote { font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.6rem; line-height: 1.4; padding-left: 1.5rem; border-left: 4px solid var(--clay); }
+.prose-post img { max-width: 100%; height: auto; border-radius: 1rem; }
+.prose-post figcaption { margin-top: .6em; text-align: center; font-size: .875rem; color: var(--muted); }
+.prose-post table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 1rem; }
+.prose-post th, .prose-post td { border: 1px solid var(--line); padding: .6em .9em; text-align: left; }
+.prose-post th { background: var(--raised); }
+.prose-post pre { overflow-x: auto; background: var(--ink); color: var(--cream); padding: 1.2em; border-radius: .75rem; font-size: .95rem; line-height: 1.6; }
+.prose-post :not(pre) > code { background: var(--raised); padding: .1em .35em; border-radius: .3em; font-size: .9em; }
+.prose-post hr { border: 0; text-align: center; }
+.prose-post hr::before { content: "✦ ✦ ✦"; color: var(--clay); letter-spacing: .5em; }
+.prose-post > p:first-child::first-letter { float: left; font-family: "Fraunces", Georgia, serif; font-weight: 600;
+  font-size: 4.2em; line-height: .8; padding: .08em .12em 0 0; color: var(--accent); }
