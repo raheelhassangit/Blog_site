@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load blog_extras %}
 {% block content %}
 <div id="progress" aria-hidden="true"></div>
 
@@ -15,32 +16,22 @@
     <h1 class="mt-5 font-display text-4xl font-semibold leading-[1.08] tracking-tight md:text-6xl">{{ post.title }}</h1>
     <p class="mt-5 text-xl text-muted md:text-2xl">{{ post.excerpt }}</p>
 
-    <div class="mt-8 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
-      <div class="flex items-center gap-3">
-        {% if post.author.photo %}
-          <img src="{{ post.author.photo.url }}" alt="" width="44" height="44" class="h-11 w-11 rounded-full object-cover">
-        {% else %}
-          <span class="grid h-11 w-11 place-items-center rounded-full bg-forest font-display text-lg font-semibold text-cream" aria-hidden="true">{{ post.author.display_name|first }}</span>
-        {% endif %}
-        <div class="text-sm">
-          <a href="{{ post.author.get_absolute_url }}" class="font-semibold hover:text-accent">{{ post.author.display_name }}</a>
-          <p class="text-muted">
-            <time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"M j, Y" }}</time>
-            · {{ post.reading_time }} min read
-            {% if post.updated_at|date:"Ymd" != post.published_at|date:"Ymd" %}· Updated {{ post.updated_at|date:"M j, Y" }}{% endif %}
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 text-sm font-semibold">
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-y border-line py-3 text-sm">
+      <p class="text-muted">
+        <time datetime="{{ post.published_at|date:'c' }}">{{ post.published_at|date:"M j, Y" }}</time>
+        · {{ post.reading_time }} min read
+        {% if post.updated_at|date:"Ymd" != post.published_at|date:"Ymd" %}· Updated {{ post.updated_at|date:"M j, Y" }}{% endif %}
+      </p>
+      <div class="flex items-center gap-2 font-semibold">
         {% if seo.image %}
-          <a href="https://pinterest.com/pin/create/button/?url={{ seo.canonical|urlencode:'' }}&media={{ seo.image|urlencode:'' }}&description={{ post.title|urlencode:'' }}" target="_blank" rel="noopener" class="rounded-full border border-line px-4 py-2 hover:bg-clay hover:text-ink">Pin it</a>
+          <a href="https://pinterest.com/pin/create/button/?url={{ seo.canonical|urlencode:'' }}&media={{ seo.image|urlencode:'' }}&description={{ post.title|urlencode:'' }}" target="_blank" rel="noopener" class="rounded-full border border-line px-4 py-1.5 hover:bg-clay hover:text-ink">Pin it</a>
         {% endif %}
-        <button id="copy-link" type="button" class="rounded-full border border-line px-4 py-2 hover:bg-forest hover:text-cream">Copy link</button>
+        <button id="copy-link" type="button" class="rounded-full border border-line px-4 py-1.5 hover:bg-forest hover:text-cream">Copy link</button>
       </div>
     </div>
   </header>
 
-  <div class="mx-auto mt-10 max-w-5xl px-5 md:px-8">
+  <div class="mx-auto mt-8 max-w-5xl px-5 md:px-8">
     <div class="relative aspect-[16/9] overflow-hidden rounded-3xl">
       {% if post.cover_image %}
         <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt }}" class="absolute inset-0 h-full w-full object-cover" fetchpriority="high" decoding="async">
@@ -50,33 +41,47 @@
     </div>
   </div>
 
-  <div class="mx-auto mt-10 max-w-3xl px-5 md:px-8">
+  <div class="mx-auto mt-8 max-w-3xl px-5 md:px-8">
+    {% if post.has_affiliate_links %}
+      <p class="mb-6 rounded-xl border border-line bg-raised px-4 py-3 text-sm text-muted"><strong class="text-body">Disclosure:</strong> this post contains affiliate links. If you buy through them, we may earn a small commission at no extra cost to you.</p>
+    {% endif %}
+
+    {% include "partials/ad.html" with ad=ads.post_top %}
+
     <nav id="toc" hidden aria-label="In this article" class="mb-10 rounded-2xl border border-line bg-raised p-5">
       <details open>
         <summary class="cursor-pointer font-display text-xl font-semibold">In this article</summary>
         <ol id="toc-list" class="mt-3 list-decimal space-y-1 pl-5 text-accent marker:font-semibold"></ol>
       </details>
     </nav>
-    <div id="article-body" class="prose-post">{{ post.body|safe }}</div>
+
+    <div id="article-body">
+      <div class="prose-post">{{ body_head|mark_links }}</div>
+      {% if body_tail %}
+        {% include "partials/ad.html" with ad=ads.post_middle %}
+        <div class="prose-post">{{ body_tail|mark_links }}</div>
+      {% endif %}
+    </div>
 
     {% if post.tags.all %}
-      <ul class="mt-12 flex flex-wrap gap-2" aria-label="Tags">
+      <ul class="mt-10 flex flex-wrap gap-2" aria-label="Tags">
         {% for t in post.tags.all %}<li><a href="{{ t.get_absolute_url }}" class="inline-block rounded-full border border-line px-4 py-1.5 text-sm font-medium hover:bg-forest hover:text-cream">#{{ t.name }}</a></li>{% endfor %}
       </ul>
     {% endif %}
 
-    <aside class="mt-12 flex gap-5 rounded-3xl bg-raised p-6" aria-label="About the author">
+    {% include "partials/ad.html" with ad=ads.post_end %}
+
+    <aside class="mt-10 flex items-center gap-3 border-t border-line pt-6" aria-label="About the author">
       {% if post.author.photo %}
-        <img src="{{ post.author.photo.url }}" alt="" width="72" height="72" loading="lazy" class="h-[72px] w-[72px] shrink-0 rounded-full object-cover">
+        <img src="{{ post.author.photo.url }}" alt="" width="40" height="40" loading="lazy" class="h-10 w-10 shrink-0 rounded-full object-cover">
       {% else %}
-        <span class="grid h-[72px] w-[72px] shrink-0 place-items-center rounded-full bg-forest font-display text-2xl font-semibold text-cream" aria-hidden="true">{{ post.author.display_name|first }}</span>
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-forest font-display font-semibold text-cream" aria-hidden="true">{{ post.author.display_name|first }}</span>
       {% endif %}
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-[.2em] text-accent">Written by</p>
-        <p class="font-display text-2xl font-semibold">{{ post.author.display_name }}</p>
-        {% if post.author.bio %}<p class="mt-2 text-muted">{{ post.author.bio }}</p>{% endif %}
-        <a href="{{ post.author.get_absolute_url }}" class="mt-3 inline-block text-sm font-semibold text-accent underline underline-offset-4">More from {{ post.author.display_name }} →</a>
-      </div>
+      <p class="text-sm">
+        <span class="text-muted">Written by</span>
+        <a href="{{ post.author.get_absolute_url }}" class="font-semibold hover:text-accent">{{ post.author.display_name }}</a>
+        {% if post.author.bio %}<span class="line-clamp-2 block text-muted">{{ post.author.bio }}</span>{% endif %}
+      </p>
     </aside>
   </div>
 </article>
@@ -100,6 +105,9 @@
     bar.style.transform = 'scaleX(' + Math.min(1, Math.max(0, -r.top / h)) + ')';
   }
   addEventListener('scroll', update, { passive: true }); update();
+
+  var first = art.querySelector('.prose-post > p');
+  if (first && first.textContent.trim().length > 200) first.classList.add('dropcap');
 
   var hs = art.querySelectorAll('h2'), list = document.getElementById('toc-list');
   if (hs.length >= 3) {

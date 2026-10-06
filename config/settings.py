@@ -99,6 +99,12 @@ MAILERS = {
 }
 
 # ---- CKEditor 5 ----
+CONTACT_EMAIL = config("CONTACT_EMAIL", default="hello@example.com")
+AFFILIATE_DOMAINS = config(
+    "AFFILIATE_DOMAINS",
+    default="amzn.to,amazon.com,shareasale.com,awin1.com,rstyle.me,shopstyle.com",
+    cast=Csv(),
+)
 CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"
 CKEDITOR_5_UPLOAD_PATH = "uploads/"
 CKEDITOR_5_CONFIGS = {
@@ -118,6 +124,16 @@ CKEDITOR_5_CONFIGS = {
             "bulletedList", "numberedList", "blockQuote", "|",
             "insertImage", "insertTable", "codeBlock", "|", "undo", "redo",
         ],
+                "link": {
+            "defaultProtocol": "https://",
+            "decorators": {
+                "isSponsored": {
+                    "mode": "manual",
+                    "label": "Affiliate / sponsored link",
+                    "attributes": {"rel": "sponsored nofollow noopener", "target": "_blank"},
+                }
+            },
+        },
     }
 }
 

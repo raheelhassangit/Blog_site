@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 RESERVED_SLUGS = {
     "admin", "search", "category", "tag", "author", "feed", "sitemap",
     "robots", "static", "media", "ckeditor5", "about", "contact", "privacy", "terms",
+    "privacy-policy", "affiliate-disclosure",
 }
 
 # Whitelist for editor HTML. Anything not listed is stripped on save.
@@ -40,6 +41,17 @@ def unique_slug(instance, source, max_length=200):
         n += 1
     return slug
 
+ALLOWED_ATTRS = {
+    "a": {"href", "title", "rel", "target"},   # rel/target now allowed
+    "img": {"src", "alt", "width", "height"},
+    "code": {"class"},
+    "pre": {"class"},
+}
+
+
+def clean_html(html):
+    return nh3.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS,
+                     url_schemes={"http", "https", "mailto"}, link_rel=None)
 
 class Category(models.Model):
     name = models.CharField(max_length=80, unique=True)
@@ -156,6 +168,10 @@ class Post(models.Model):
                 self.slug = f"{self.slug}-post"
         # ... rest of your existing save() unchanged
     
+    has_affiliate_links = models.BooleanField(
+        default=False, help_text="Shows an affiliate disclosure at the top of this post."
+    )
+        
     class Meta:
         ordering = ["-published_at"]
         indexes = [
@@ -192,3 +208,62 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+    
+class AdSlot(models.Model):
+    class Placement(models.TextChoices):
+        POST_TOP = "post_top", "Post page: above the article text"
+        POST_MIDDLE = "post_middle", "Post page: middle of the article"
+        POST_END = "post_end", "Post page: after the article"
+
+    name = models.CharField(max_length=80, help_text="Only for you, e.g. 'AdSense top' or 'Amazon summer dress banner'.")
+    placement = models.CharField(max_length=20, choices=Placement.choices, unique=True)
+    is_active = models.BooleanField(default=True, help_text="Untick to hide this ad without deleting it.")
+    ad_code = models.TextField("Ad network code", blank=True, help_text="Paste the full snippet from AdSense or another network.")
+    banner = models.ImageField(upload_to="ads/", blank=True)
+    banner_alt = models.CharField(max_length=150, blank=True)
+    link_url = models.URLField("Affiliate link", blank=True, help_text="Where the banner points to.")
+
+    class Meta:
+        ordering = ["placement"]
+
+    @property
+    def has_content(self):
+        return bool(self.ad_code.strip() or (self.banner and self.link_url))
+
+    def clean(self):
+        if self.ad_code.strip() and self.banner:
+            raise ValidationError("Use either ad code or a banner, not both.")
+        if not self.has_content:
+            raise ValidationError("Add ad code, or a banner image together with its link.")
+
+    def __str__(self):
+        return f"{self.name} ({self.get_placement_display()})"    
+    
+PAGE_SLUGS = [
+    ("about", "About"),
+    ("contact", "Contact"),
+    ("privacy-policy", "Privacy Policy"),
+    ("affiliate-disclosure", "Affiliate Disclosure"),
+]
+
+
+class Page(models.Model):
+    slug = models.SlugField(max_length=40, choices=PAGE_SLUGS, unique=True)
+    title = models.CharField(max_length=120)
+    body = CKEditor5Field("Body", config_name="default")
+    meta_description = models.CharField(max_length=160, blank=True)
+    show_in_footer = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["title"]
+
+    def save(self, *args, **kwargs):
+        self.body = clean_html(self.body)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("blog:page", kwargs={"slug": self.slug})
+
+    def __str__(self):
+        return self.title    

@@ -109,5 +109,5 @@ html { scroll-padding-top: 5.5rem; }
 .prose-post :not(pre) > code { background: var(--raised); padding: .1em .35em; border-radius: .3em; font-size: .9em; }
 .prose-post hr { border: 0; text-align: center; }
 .prose-post hr::before { content: "✦ ✦ ✦"; color: var(--clay); letter-spacing: .5em; }
-.prose-post > p:first-child::first-letter { float: left; font-family: "Fraunces", Georgia, serif; font-weight: 600;
+.prose-post > p.dropcap::first-lette { float: left; font-family: "Fraunces", Georgia, serif; font-weight: 600;
   font-size: 4.2em; line-height: .8; padding: .08em .12em 0 0; color: var(--accent); }

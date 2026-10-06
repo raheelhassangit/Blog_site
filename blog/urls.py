@@ -1,5 +1,5 @@
 from django.contrib.sitemaps.views import sitemap
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 from .feeds import LatestPostsFeed
@@ -17,4 +17,6 @@ urlpatterns = [
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
     path("robots.txt", views.robots_txt, name="robots"),
     path("<slug:slug>/", views.PostDetailView.as_view(), name="post_detail"),  # must stay last
+    re_path(r"^(?P<slug>about|contact|privacy-policy|affiliate-disclosure)/$",
+        views.PageView.as_view(), name="page"),
 ]

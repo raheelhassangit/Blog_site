@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import AuthorProfile, Category, Post, Tag
-
+from .models import AdSlot  
+from .models import Page
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,7 +34,25 @@ class PostAdmin(admin.ModelAdmin):
         (None, {"fields": ("title", "slug", "excerpt", "body")}),
         ("Media", {"fields": ("cover_image", "cover_alt")}),
         ("Organization", {"fields": ("category", "tags", "author")}),
-        ("Publishing", {"fields": ("status", "published_at")}),
+        ("Publishing", {"fields": ("status", "published_at", "has_affiliate_links")}),
         ("SEO (optional overrides)", {"classes": ("collapse",),
                                       "fields": ("meta_title", "meta_description", "noindex")}),
     )
+
+@admin.register(AdSlot)
+class AdSlotAdmin(admin.ModelAdmin):
+    list_display = ("name", "placement", "kind", "is_active")
+    list_editable = ("is_active",)
+    fieldsets = (
+        (None, {"fields": ("name", "placement", "is_active")}),
+        ("Option A: ad network code (AdSense etc.)", {"fields": ("ad_code",)}),
+        ("Option B: affiliate banner", {"fields": ("banner", "banner_alt", "link_url")}),
+    )
+
+    @admin.display(description="Type")
+    def kind(self, obj):
+        return "Code" if obj.ad_code.strip() else "Banner" if obj.banner else "Empty"        
+    
+@admin.register(Page)
+class PageAdmin(admin.ModelAdmin):
+    list_display = ("title", "slug", "show_in_footer", "updated_at")     

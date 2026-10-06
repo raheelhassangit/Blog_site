@@ -8,8 +8,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_safe
 from django.views.generic import DetailView, ListView, TemplateView
 from .sitemaps import published_filter
+from .ads import active_ads, split_body
 
-from .models import AuthorProfile, Category, Post, Tag
+from .models import AuthorProfile, Category, Post, Tag, Page
 from .seo import MIN_POSTS_FOR_INDEXABLE_TAG, SEOMixin
 from .seo import ld_json
 
@@ -76,6 +77,12 @@ class PostDetailView(SEOMixin, DetailView):
             post.status == Post.Status.PUBLISHED and post.published_at and post.published_at <= now
         )
         ctx["related_posts"] = self.get_related(post)
+        ads = active_ads()
+        ctx["ads"] = ads
+        if "post_middle" in ads:
+            ctx["body_head"], ctx["body_tail"] = split_body(post.body)
+        else:
+            ctx["body_head"], ctx["body_tail"] = post.body, ""
 
         image = post.cover_image.url if post.cover_image else ""
         seo = self.build_seo(
@@ -220,3 +227,14 @@ def robots_txt(request):
         f"Sitemap: {request.build_absolute_uri(reverse('blog:sitemap'))}",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
+
+class PageView(SEOMixin, DetailView):
+    model = Page
+    template_name = "blog/page.html"
+    context_object_name = "page"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        p = self.object
+        ctx["seo"] = self.build_seo(title=p.title, description=p.meta_description or p.title)
+        return ctx

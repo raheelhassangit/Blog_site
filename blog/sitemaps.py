@@ -3,7 +3,7 @@ from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import AuthorProfile, Category, Post, Tag
+from .models import AuthorProfile, Category, Post, Tag, Page
 from .seo import MIN_POSTS_FOR_INDEXABLE_TAG
 
 
@@ -53,8 +53,17 @@ class AuthorSitemap(Sitemap):
     def items(self):
         return AuthorProfile.objects.annotate(n=Count("posts", filter=published_filter())).filter(n__gt=0)
 
+class PageSitemap(Sitemap):
+    changefreq, priority = "yearly", 0.3
+
+    def items(self):
+        return Page.objects.all()
+
+    def lastmod(self, obj):
+        return obj.updated_at
 
 sitemaps = {
     "static": StaticSitemap, "posts": PostSitemap, "categories": CategorySitemap,
     "tags": TagSitemap, "authors": AuthorSitemap,
+    "pages": PageSitemap,
 }

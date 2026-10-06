@@ -95,6 +95,7 @@
         <ul class="mt-4 space-y-2">
           <li><a href="{% url 'blog:home' %}" class="opacity-85 hover:text-clay hover:opacity-100">Home</a></li>
           <li><a href="{% url 'blog:search' %}" class="opacity-85 hover:text-clay hover:opacity-100">Search</a></li>
+          {% for p in footer_pages %}<li><a href="{{ p.get_absolute_url }}" class="opacity-85 hover:text-clay hover:opacity-100">{{ p.title }}</a></li>{% endfor %}
         </ul>
       </nav>
     </div>

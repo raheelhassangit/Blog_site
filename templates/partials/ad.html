@@ -1,0 +1,12 @@
+{% if ad %}
+<aside class="my-10 text-center" aria-label="Advertisement">
+  <p class="mb-2 text-[11px] font-semibold uppercase tracking-[.25em] text-muted">Advertisement</p>
+  <div class="mx-auto flex max-w-full justify-center overflow-hidden">
+    {% if ad.ad_code.strip %}
+      {{ ad.ad_code|safe }}
+    {% else %}
+      <a href="{{ ad.link_url }}" target="_blank" rel="sponsored nofollow noopener"><img src="{{ ad.banner.url }}" alt="{{ ad.banner_alt }}" loading="lazy" class="mx-auto h-auto max-w-full rounded-lg"></a>
+    {% endif %}
+  </div>
+</aside>
+{% endif %}
