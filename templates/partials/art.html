@@ -1,0 +1,5 @@
+<div class="absolute inset-0 grid place-items-end justify-items-center overflow-hidden {% if n|divisibleby:4 %}bg-forest text-cream{% elif n|add:"-1"|divisibleby:4 %}bg-sage text-ink{% elif n|add:"-2"|divisibleby:4 %}bg-clay text-ink{% else %}bg-ink text-cream{% endif %}">
+  <svg viewBox="0 0 120 200" fill="currentColor" aria-hidden="true" class="mb-[6%] h-[78%] opacity-90 transition duration-700 group-hover:-rotate-3 group-hover:scale-110">
+    <path d="{% if n|divisibleby:4 %}M44 6h8l8 24 8-24h8l-4 52 34 132H14L48 58z{% elif n|add:"-1"|divisibleby:4 %}M44 6h8l8 24 8-24h8l-4 58 12 36-6 90H42l-6-90 12-36z{% elif n|add:"-2"|divisibleby:4 %}M44 6h8l8 24 8-24h8l-4 58 4 40 16 86H28l16-86 4-40z{% else %}M44 6h8l8 24 8-24h8l-4 58 30 126H18L48 64z{% endif %}"/>
+  </svg>
+</div>

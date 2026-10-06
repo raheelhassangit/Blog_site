@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+
+{# ---------- HERO ---------- #}
+<section class="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-8 md:grid-cols-[1.1fr_.9fr] md:px-8 md:pt-14">
+  <div>
+    <p class="rise mb-5 text-sm font-semibold uppercase tracking-[.2em] text-accent" style="--i:0">The dress journal</p>
+    <h1 class="font-display text-5xl font-semibold leading-[1.02] tracking-tight md:text-7xl">
+      <span class="rise" style="--i:1">Women's</span>
+      <span class="rise" style="--i:2">dresses,</span>
+      <span class="rise" style="--i:3">styled</span><br>
+      <span class="rise italic text-accent" style="--i:4">for
+        <span class="relative">every occasion
+          <svg class="scribble absolute -bottom-3 left-0 w-full" viewBox="0 0 300 20" fill="none" preserveAspectRatio="none" aria-hidden="true">
+            <path pathLength="1" d="M3 14c50-10 100-12 150-6s90 4 144-4" stroke="#c97b4a" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </span>.
+      </span>
+    </h1>
+    <p class="rise mt-8 max-w-md text-lg text-muted" style="--i:5">{{ SITE_DESCRIPTION }}</p>
+    <form action="{% url 'blog:search' %}" method="get" role="search" class="rise mt-8 flex max-w-lg gap-2 rounded-full border border-line bg-raised p-2 pl-6 shadow-sm focus-within:border-clay" style="--i:6">
+      <label for="hero-q" class="sr-only">Search the blog</label>
+      <input id="hero-q" name="q" type="search" maxlength="100" placeholder="Try “wedding guest” or “linen midi”…" class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted">
+      <button class="rounded-full bg-forest px-6 py-3 text-sm font-semibold text-cream transition hover:bg-clay hover:text-ink">Search</button>
+    </form>
+  </div>
+
+  <div class="rise relative mx-auto w-full max-w-md" style="--i:4">
+    <svg viewBox="0 0 400 480" class="w-full" aria-hidden="true">
+      <defs>
+        <clipPath id="arch"><path d="M40 470V200a160 160 0 0 1 320 0v270z"/></clipPath>
+        <mask id="moon"><rect width="400" height="480" fill="#fff"/><circle class="cut" cx="250" cy="150" r="66" fill="#000"/></mask>
+      </defs>
+      <g clip-path="url(#arch)">
+        <rect width="400" height="480" fill="#47624a"/>
+        <g mask="url(#moon)">
+          <circle cx="250" cy="150" r="58" fill="#c97b4a"/>
+          <circle class="rays" cx="250" cy="150" r="82" fill="none" stroke="#c97b4a" stroke-width="9" stroke-dasharray="2 24" stroke-linecap="round"/>
+        </g>
+        <g class="stars" fill="#efe6d3"><circle cx="110" cy="130" r="3"/><circle cx="300" cy="80" r="2.5"/><circle cx="330" cy="250" r="2"/><circle cx="150" cy="200" r="2"/></g>
+        <path d="M0 400c80-50 150-40 210-10s130 20 190-10v100H0z" fill="#8aa071"/>
+        <rect y="440" width="400" height="40" fill="#2d2f28" opacity=".85"/>
+      </g>
+    </svg>
+    <svg viewBox="0 0 120 200" fill="#efe6d3" aria-hidden="true" class="float absolute bottom-[5%] left-1/2 w-[34%] -translate-x-1/2 drop-shadow-2xl">
+      <path d="M44 6h8l8 24 8-24h8l-4 52 34 132H14L48 58z"/>
+    </svg>
+    {% for c in nav_categories|slice:":3" %}
+      {% cycle "left-0 top-[16%] -rotate-6" "right-0 top-[44%] rotate-3" "left-[2%] bottom-[14%] rotate-2" as pos silent %}
+      <a href="{{ c.get_absolute_url }}" class="absolute {{ pos }} rounded-full bg-paper px-4 py-2 text-sm font-semibold text-body shadow-lg transition hover:scale-105 hover:bg-clay hover:text-ink">{{ c.name }}</a>
+    {% endfor %}
+  </div>
+</section>
+
+{# ---------- TICKER ---------- #}
+{% if nav_categories %}
+<div class="marquee overflow-hidden border-y border-line py-4 font-display text-2xl italic text-muted" aria-hidden="true">
+  <div class="marquee-track">
+    {% for i in "xxxx" %}{% for c in nav_categories %}<span>{{ c.name }}</span><span class="not-italic text-clay">✦</span>{% endfor %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if not featured %}
+  <p class="mx-auto max-w-xl px-5 py-24 text-center text-lg text-muted">The first stories are being styled. Check back very soon.</p>
+{% else %}
+
+{# ---------- CATEGORIES ---------- #}
+<section class="mx-auto mt-24 max-w-6xl px-5 md:px-8" aria-labelledby="shop-by">
+  <h2 id="shop-by" class="reveal font-display text-3xl font-semibold md:text-5xl">Find your occasion</h2>
+  <ul class="mt-10 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+    {% for c in nav_categories %}
+      <li class="reveal">
+        <a href="{{ c.get_absolute_url }}" class="group block">
+          <div class="relative aspect-[3/4] overflow-hidden rounded-b-2xl rounded-t-[999px] transition duration-500 group-hover:-translate-y-2">
+            {% include "partials/art.html" with n=c.pk %}
+          </div>
+          <h3 class="mt-4 font-display text-2xl font-semibold decoration-clay decoration-2 underline-offset-4 group-hover:underline">{{ c.name }}</h3>
+          <p class="text-sm text-muted">{{ c.post_count }} article{{ c.post_count|pluralize }}</p>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{# ---------- FEATURED ---------- #}
+<section class="mx-auto mt-28 max-w-6xl px-5 md:px-8" aria-labelledby="featured">
+  <a href="{{ featured.get_absolute_url }}" class="group reveal grid items-center gap-10 md:grid-cols-2">
+    <div class="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-b-3xl rounded-t-[999px]">
+      {% if featured.cover_image %}
+        <img src="{{ featured.cover_image.url }}" alt="{{ featured.cover_alt }}" class="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+      {% else %}
+        {% include "partials/art.html" with n=featured.pk %}
+      {% endif %}
+    </div>
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[.2em] text-accent">Latest story · {{ featured.category.name }}</p>
+      <h2 id="featured" class="mt-4 font-display text-4xl font-semibold leading-tight md:text-6xl">{{ featured.title }}</h2>
+      <p class="mt-5 max-w-lg text-lg text-muted">{{ featured.excerpt }}</p>
+      <p class="mt-5 text-sm font-medium text-muted">By {{ featured.author.display_name }} · {{ featured.reading_time }} min read</p>
+      <span class="mt-8 inline-flex items-center gap-2 rounded-full bg-forest px-7 py-3 font-semibold text-cream transition group-hover:gap-4 group-hover:bg-clay group-hover:text-ink">Read the story <span aria-hidden="true">→</span></span>
+    </div>
+  </a>
+</section>
+
+{# ---------- LATEST ---------- #}
+{% if latest %}
+<section class="mx-auto mt-28 max-w-6xl px-5 md:px-8" aria-labelledby="latest">
+  <h2 id="latest" class="reveal font-display text-3xl font-semibold md:text-5xl">Fresh from the journal</h2>
+  <div class="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+    {% for post in latest %}{% include "partials/post_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ---------- CATEGORY ROWS ---------- #}
+{% for category, posts in sections %}
+<section class="mx-auto mt-28 max-w-6xl px-5 md:px-8" aria-labelledby="sec-{{ category.slug }}">
+  <div class="reveal flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
+    <h2 id="sec-{{ category.slug }}" class="font-display text-3xl font-semibold md:text-4xl">{{ category.name }}</h2>
+    <a href="{{ category.get_absolute_url }}" class="text-sm font-semibold text-accent underline underline-offset-4">See all {{ category.name }} →</a>
+  </div>
+  <div class="mt-8 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+    {% for post in posts %}{% include "partials/post_card.html" %}{% endfor %}
+  </div>
+</section>
+{% endfor %}
+
+{# ---------- TAGS ---------- #}
+{% if tags %}
+<section class="mx-auto mt-28 max-w-6xl px-5 md:px-8" aria-labelledby="tags">
+  <h2 id="tags" class="reveal font-display text-3xl font-semibold md:text-5xl">Browse by style</h2>
+  <ul class="mt-8 flex flex-wrap gap-3">
+    {% for t in tags %}
+      <li class="reveal"><a href="{{ t.get_absolute_url }}" class="inline-block rounded-full border border-line px-5 py-2 font-medium transition hover:-translate-y-1 hover:border-forest hover:bg-forest hover:text-cream">#{{ t.name }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{# ---------- VALUES (edit this copy) ---------- #}
+<section class="mt-28 bg-forest text-cream">
+  <div class="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-3 md:px-8">
+    <div class="reveal"><p class="font-display text-5xl text-clay">01</p><h3 class="mt-3 font-display text-2xl font-semibold">Fit before fashion</h3><p class="mt-2 opacity-85">Honest notes on cut, length and how a dress really sits on different bodies.</p></div>
+    <div class="reveal"><p class="font-display text-5xl text-clay">02</p><h3 class="mt-3 font-display text-2xl font-semibold">Fabric you can trust</h3><p class="mt-2 opacity-85">What each material feels like, how it wears, and how to keep it looking new.</p></div>
+    <div class="reveal"><p class="font-display text-5xl text-clay">03</p><h3 class="mt-3 font-display text-2xl font-semibold">Built for the occasion</h3><p class="mt-2 opacity-85">From weddings to workdays, ideas organised by where you're actually going.</p></div>
+  </div>
+</section>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% load static tailwind_tags %}<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>{{ seo.title|default:SITE_NAME }}</title>
+  <meta name="description" content="{{ seo.description }}">
+  <link rel="canonical" href="{{ seo.canonical }}">
+  {% if seo.noindex %}<meta name="robots" content="noindex,follow">{% endif %}
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:title" content="{{ seo.title }}">
+  <meta property="og:description" content="{{ seo.description }}">
+  <meta property="og:type" content="{{ seo.og_type }}">
+  <meta property="og:url" content="{{ seo.canonical }}">
+  {% if seo.image %}<meta property="og:image" content="{{ seo.image }}">{% endif %}
+  <link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }}" href="{% url 'blog:feed' %}">
+  {% if seo.json_ld %}<script type="application/ld+json">{{ seo.json_ld|safe }}</script>{% endif %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      var d = document.documentElement; d.classList.remove('no-js'); d.classList.add('js');
+      var t; try { t = localStorage.getItem('theme'); } catch (e) {}
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      d.classList.toggle('dark', t === 'dark');
+    })();
+  </script>
+  {% tailwind_css %}
+</head>
+<body class="min-h-screen antialiased">
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded focus:bg-forest focus:px-4 focus:py-2 focus:text-cream">Skip to content</a>
+
+  <header class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-5 md:px-8">
+    <a href="{% url 'blog:home' %}" class="font-display text-2xl font-semibold tracking-tight">{{ SITE_NAME }}<span class="text-clay">.</span></a>
+    <nav aria-label="Topics" class="hidden gap-6 text-sm font-medium md:flex">
+      {% for c in nav_categories|slice:":5" %}
+        <a href="{{ c.get_absolute_url }}" class="decoration-clay decoration-2 underline-offset-8 hover:underline">{{ c.name }}</a>
+      {% endfor %}
+    </nav>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'blog:search' %}" aria-label="Search" class="grid h-10 w-10 place-items-center rounded-full hover:bg-raised">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </a>
+      <button id="theme-toggle" type="button" aria-label="Switch between day and night mode" class="grid h-10 w-10 place-items-center rounded-full hover:bg-raised">
+        <svg class="dark:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="hidden dark:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">{% block content %}{% endblock %}</main>
+
+  <footer class="mt-24 border-t border-line">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-10 text-sm text-muted md:px-8">
+      <p>&copy; {% now "Y" %} {{ SITE_NAME }}. Written slowly, on purpose.</p>
+      <a href="{% url 'blog:feed' %}" class="font-medium text-accent underline underline-offset-4">RSS feed</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+      var dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+    });
+    var io = 'IntersectionObserver' in window && new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: .12 });
+    document.querySelectorAll('.reveal').forEach(function (el) { io ? io.observe(el) : el.classList.add('in'); });
+  </script>
+</body>
+</html>

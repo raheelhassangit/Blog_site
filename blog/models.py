@@ -10,6 +10,12 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
+from django.core.exceptions import ValidationError
+
+RESERVED_SLUGS = {
+    "admin", "search", "category", "tag", "author", "feed", "sitemap",
+    "robots", "static", "media", "ckeditor5", "about", "contact", "privacy", "terms",
+}
 
 # Whitelist for editor HTML. Anything not listed is stripped on save.
 ALLOWED_TAGS = {
@@ -138,6 +144,18 @@ class Post(models.Model):
     objects = models.Manager()
     published = PublishedManager()
 
+    def clean(self):
+        super().clean()
+        if self.slug in RESERVED_SLUGS:
+            raise ValidationError({"slug": "This slug is reserved for a site page."})
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = unique_slug(self, self.title)
+            if self.slug in RESERVED_SLUGS:
+                self.slug = f"{self.slug}-post"
+        # ... rest of your existing save() unchanged
+    
     class Meta:
         ordering = ["-published_at"]
         indexes = [
