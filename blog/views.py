@@ -220,6 +220,8 @@ class SearchView(SEOMixin, ListView):
 
 @require_safe
 def robots_txt(request):
+    if settings.BLOCK_INDEXING:
+        return HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")
     lines = [
         "User-agent: *",
         "Disallow: /search/",
