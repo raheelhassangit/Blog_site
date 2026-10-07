@@ -139,8 +139,21 @@ CKEDITOR_5_CONFIGS = {
 
 # ---- Production hardening (applies whenever DEBUG is off) ----
 if not DEBUG:
+    MEDIA_URL = f"https://{config('R2_PUBLIC_DOMAIN')}/"
     STORAGES = {
-        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},  # R2 later
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": config("R2_BUCKET"),
+                "endpoint_url": config("R2_ENDPOINT"),  # https://<account-id>.r2.cloudflarestorage.com
+                "access_key": config("R2_ACCESS_KEY"),
+                "secret_key": config("R2_SECRET_KEY"),
+                "region_name": "auto",
+                "custom_domain": config("R2_PUBLIC_DOMAIN"),  # e.g. media.yourdomain.com
+                "querystring_auth": False,
+                "file_overwrite": False,
+            },
+        },
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
