@@ -3,7 +3,16 @@
 from pathlib import Path
 
 from decouple import Csv, config
+import cloudinary
 
+cloudinary.config(
+    cloud_name=config("CLOUDINARY_CLOUD_NAME", default=""),
+    api_key=config("CLOUDINARY_API_KEY", default=""),
+    api_secret=config("CLOUDINARY_API_SECRET", default=""),
+    secure=True,
+)
+
+BLOCK_INDEXING = config("BLOCK_INDEXING", default=False, cast=bool)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("SECRET_KEY")
@@ -141,19 +150,7 @@ CKEDITOR_5_CONFIGS = {
 if not DEBUG:
     MEDIA_URL = f"https://{config('R2_PUBLIC_DOMAIN')}/"
     STORAGES = {
-        "default": {
-            "BACKEND": "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "bucket_name": config("R2_BUCKET"),
-                "endpoint_url": config("R2_ENDPOINT"),  # https://<account-id>.r2.cloudflarestorage.com
-                "access_key": config("R2_ACCESS_KEY"),
-                "secret_key": config("R2_SECRET_KEY"),
-                "region_name": "auto",
-                "custom_domain": config("R2_PUBLIC_DOMAIN"),  # e.g. media.yourdomain.com
-                "querystring_auth": False,
-                "file_overwrite": False,
-            },
-        },
+        "default": {"BACKEND": "blog.storage.CloudinaryStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
     }
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
