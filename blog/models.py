@@ -1,35 +1,40 @@
 import math
 
 import nh3
+from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector, SearchVectorField
-from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Value
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
-from django.core.exceptions import ValidationError
 
 RESERVED_SLUGS = {
-    "admin", "search", "category", "tag", "author", "feed", "sitemap",
-    "robots", "static", "media", "ckeditor5", "about", "contact", "privacy", "terms",
-    "privacy-policy", "affiliate-disclosure",
+    "admin", "search", "category", "tag", "author", "feed", "sitemap", "robots",
+    "static", "media", "ckeditor5", "about", "contact", "privacy", "terms",
+    "privacy-policy", "affiliate-disclosure", "ads",
 }
 
-# Whitelist for editor HTML. Anything not listed is stripped on save.
 ALLOWED_TAGS = {
     "p", "br", "h2", "h3", "h4", "strong", "em", "u", "s", "blockquote",
     "ul", "ol", "li", "a", "img", "figure", "figcaption", "pre", "code",
     "table", "thead", "tbody", "tr", "th", "td", "hr",
 }
 ALLOWED_ATTRS = {
-    "a": {"href", "title"},
+    "a": {"href", "title", "rel", "target"},
     "img": {"src", "alt", "width", "height"},
-    "code": {"class"},   # language-xxx for code highlighting
+    "code": {"class"},
     "pre": {"class"},
 }
+
+
+def clean_html(html):
+    # link_rel=None: nh3 must not force its own rel, or it would overwrite ours.
+    return nh3.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS,
+                     url_schemes={"http", "https", "mailto"}, link_rel=None)
 
 
 def unique_slug(instance, source, max_length=200):
@@ -41,17 +46,6 @@ def unique_slug(instance, source, max_length=200):
         n += 1
     return slug
 
-ALLOWED_ATTRS = {
-    "a": {"href", "title", "rel", "target"},   # rel/target now allowed
-    "img": {"src", "alt", "width", "height"},
-    "code": {"class"},
-    "pre": {"class"},
-}
-
-
-def clean_html(html):
-    return nh3.clean(html, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS,
-                     url_schemes={"http", "https", "mailto"}, link_rel=None)
 
 class Category(models.Model):
     name = models.CharField(max_length=80, unique=True)
@@ -145,6 +139,10 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    has_affiliate_links = models.BooleanField(
+        default=False, help_text="Shows an affiliate disclosure at the top of this post."
+    )
+
     # SEO overrides
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
@@ -156,6 +154,13 @@ class Post(models.Model):
     objects = models.Manager()
     published = PublishedManager()
 
+    class Meta:
+        ordering = ["-published_at"]
+        indexes = [
+            GinIndex(fields=["search_vector"], name="post_search_gin"),
+            models.Index(fields=["status", "-published_at"], name="post_status_pub_idx"),
+        ]
+
     def clean(self):
         super().clean()
         if self.slug in RESERVED_SLUGS:
@@ -166,25 +171,8 @@ class Post(models.Model):
             self.slug = unique_slug(self, self.title)
             if self.slug in RESERVED_SLUGS:
                 self.slug = f"{self.slug}-post"
-        # ... rest of your existing save() unchanged
-    
-    has_affiliate_links = models.BooleanField(
-        default=False, help_text="Shows an affiliate disclosure at the top of this post."
-    )
-        
-    class Meta:
-        ordering = ["-published_at"]
-        indexes = [
-            GinIndex(fields=["search_vector"], name="post_search_gin"),
-            models.Index(fields=["status", "-published_at"], name="post_status_pub_idx"),
-        ]
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = unique_slug(self, self.title)
         # Sanitize editor HTML before it ever hits the DB.
-        self.body = nh3.clean(self.body, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS,
-                              url_schemes={"http", "https", "mailto"})
+        self.body = clean_html(self.body)
         words = len(nh3.clean(self.body, tags=set()).split())
         self.reading_time = max(1, math.ceil(words / 200))
         if self.status == self.Status.PUBLISHED and not self.published_at:
@@ -208,7 +196,8 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
-    
+
+
 class AdSlot(models.Model):
     class Placement(models.TextChoices):
         POST_TOP = "post_top", "Post page: above the article text"
@@ -237,8 +226,9 @@ class AdSlot(models.Model):
             raise ValidationError("Add ad code, or a banner image together with its link.")
 
     def __str__(self):
-        return f"{self.name} ({self.get_placement_display()})"    
-    
+        return f"{self.name} ({self.get_placement_display()})"
+
+
 PAGE_SLUGS = [
     ("about", "About"),
     ("contact", "Contact"),
@@ -266,4 +256,4 @@ class Page(models.Model):
         return reverse("blog:page", kwargs={"slug": self.slug})
 
     def __str__(self):
-        return self.title    
+        return self.title

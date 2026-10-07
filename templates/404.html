@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="mx-auto max-w-2xl px-5 py-24 text-center">
+  <p class="font-display text-8xl font-semibold text-clay">404</p>
+  <h1 class="mt-4 font-display text-4xl font-semibold">This page slipped off the rack</h1>
+  <p class="mt-4 text-muted">The link may be old or mistyped. Try a search, or head back to the latest stories.</p>
+  <form action="{% url 'blog:search' %}" method="get" role="search" class="mx-auto mt-8 flex max-w-md gap-2 rounded-full border border-line bg-raised p-2 pl-5">
+    <label for="q404" class="sr-only">Search</label>
+    <input id="q404" name="q" type="search" class="min-w-0 flex-1 bg-transparent outline-none" placeholder="Search dresses…">
+    <button class="rounded-full bg-forest px-5 py-2 text-sm font-semibold text-cream">Search</button>
+  </form>
+  <a href="{% url 'blog:home' %}" class="mt-6 inline-block font-semibold text-accent underline underline-offset-4">Back to home</a>
+</section>
+{% endblock %}
